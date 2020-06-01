@@ -21,7 +21,7 @@ apply from: '../_commander/versions/hoxton.sr4.gradle'
 // Configure sub-projects
 subprojects { project ->
 
-    // Define repositories (required
+    // Define repositories (required to be first as dependencies need to be downloaded)
     repositories {
         mavenCentral()
         jcenter()
@@ -29,14 +29,16 @@ subprojects { project ->
 
     // Add Git Plugins
     apply from: "${project.rootDir}/scripts/git.gradle"
-    apply plugin: "com.palantir.git-version"
-    def versionDetails = versionDetails()
-    version = "${versionDetails.lastTag}-${versionDetails.commitDistance}-${versionDetails.gitHash}${versionDetails.isCleanTag ? '' : '-dirty'}"
 
     // Verify project exists
     if (!project.projectDir.exists() || project.projectDir.list().length == 0) {
         return
     }
+
+    // Add Git Version Plugin
+    apply plugin: "com.palantir.git-version"
+    def versionDetails = versionDetails()
+    version = "${versionDetails.lastTag}-${versionDetails.commitDistance}-${versionDetails.gitHash}${versionDetails.isCleanTag ? '' : '-dirty'}"
 
     def projectType = project.hasProperty('projectType') ? project.projectType.trim() : ""
 
@@ -86,10 +88,5 @@ subprojects { project ->
     // Optionally apply Docker plugins
     if (dockerProjectTypes.contains(projectType)) {
         apply from: "${project.rootDir}/scripts/docker.gradle"
-    }
-
-    repositories {
-        mavenCentral()
-        jcenter()
     }
 }

@@ -47,7 +47,7 @@ task clone {
       process.errorStream.eachLine {
         error.append(it)
       }
-     throw new GradleException(error.toString());
+      println(error.toString()); // Do not throw GradleException as want to continue build for other subprojects
     }
   }
 }
@@ -91,7 +91,7 @@ task checkout {
       process.errorStream.eachLine {
         error.append(it)
       }
-     throw new GradleException(error.toString());
+      println(error.toString()); // Do not throw GradleException as want to continue build for other subprojects
     }
 
     // Checkout
@@ -108,7 +108,7 @@ task checkout {
       process.errorStream.eachLine {
         error.append(it)
       }
-     throw new GradleException(error.toString());
+      println(error.toString()); // Do not throw GradleException as want to continue build for other subprojects
     }
 
     // Pull
@@ -127,7 +127,7 @@ task checkout {
       process.errorStream.eachLine {
         error.append(it)
       }
-     throw new GradleException(error.toString());
+      println(error.toString()); // Do not throw GradleException as want to continue build for other subprojects
     }
   }
 }

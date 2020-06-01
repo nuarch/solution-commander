@@ -6,7 +6,7 @@ def templateDir = 'src/main/resources/templates'
 def nodeDir = 'src/client'
 def nodeDistDir = "$nodeDir/dist"
 
-task cleanNode(type: Delete) {
+task npmClean(type: Delete) {
 	group 'Spring NPM'
 	description 'Deletes node distribution directory'
 	delete nodeDistDir
@@ -85,7 +85,7 @@ task installNodeModules(type: Exec) {
 	}
 }
 
-task nodeLint(type: Exec) {
+task npmLint(type: Exec) {
 	group 'Spring NPM'
 	description 'Lint code'
 	dependsOn installNodeModules
@@ -102,7 +102,7 @@ task nodeLint(type: Exec) {
 task nodeTest(type: Exec) {
 	group 'Spring NPM'
 	description 'Execute npm unit tests on npm project'
-	dependsOn nodeLint
+	dependsOn npmLint
 
 	workingDir nodeDir
 
@@ -116,7 +116,7 @@ task nodeTest(type: Exec) {
 task nodeTestLib(type: Exec) {
 	group 'Spring NPM'
 	description 'Execute npm unit tests on npm library project'
-	dependsOn nodeLint
+	dependsOn npmLint
 
 	workingDir nodeDir
 
@@ -127,7 +127,7 @@ task nodeTestLib(type: Exec) {
 	}
 }
 
-task nodeBuild(type: Exec) {
+task npmBuild(type: Exec) {
 	group 'Spring NPM'
 	description 'Build npm project'
 	dependsOn nodeTest
@@ -141,7 +141,7 @@ task nodeBuild(type: Exec) {
 	}
 }
 
-task nodeBuildLib(type: Exec) {
+task npmBuildLib(type: Exec) {
 	group 'Spring NPM'
 	description 'Build npm library project'
 
@@ -160,7 +160,7 @@ task nodeBuildLib(type: Exec) {
 task nodePublishLib(type: Exec) {
 	group 'Spring NPM'
 	description 'Publish npm library project'
-	dependsOn nodeBuildLib
+	dependsOn npmBuildLib
 
 	workingDir nodeDir
 
@@ -178,7 +178,7 @@ task nodePublishLib(type: Exec) {
 task copyStaticResources() {
 	group 'Spring NPM'
 	description 'Copy NPM project into Spring project'
-	dependsOn nodeBuild
+	dependsOn npmBuild
 
 	doLast {
 		copy {
@@ -235,4 +235,4 @@ task copyStaticResources() {
 
 build.dependsOn 'copyStaticResources'
 
-clean.dependsOn 'cleanNode', 'cleanStaticResources'
+clean.dependsOn 'npmClean', 'cleanStaticResources'
