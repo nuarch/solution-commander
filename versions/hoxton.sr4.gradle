@@ -1,0 +1,33 @@
+ext {
+  versions = [
+    commonsLang3                    : '3.9',
+    fakemongo                       : '2.1.1', 
+    logstashLogbackEnconder         : '6.2',
+    lombok                          : '1.18.12',       
+    mockito                         : '3.1.0',
+    nosqlunitMongoDb                : '1.0.0',
+    rxJavaReactiveStreams           : '3.0.4', // legacy
+    springBoot                      : ' 2.2.5.RELEASE',
+    springCloud                     : 'Hoxton.SR4', 
+    springRestDocs                  : '2.0.4.RELEASE'
+  ]
+  
+  libs = [
+    commonsLang3                    : "org.apache.commons:commons-lang3:$versions.commonsLang3",
+    fakemongo                       : "com.github.fakemongo:fongo:$versions.fakemongo",
+    logstashLogbackEnconder         : "net.logstash.logback:logstash-logback-encoder:$versions.logstashLogbackEnconder",
+    lombok                          : "org.projectlombok:lombok:$versions.lombok",
+    mockito                         : "org.mockito:mockito-core:$versions.mockito",
+    nosqlunitMongoDb                : "com.lordofthejars:nosqlunit-mongodb:$versions.nosqlunitMongoDb",
+    rxJavaReactiveStreams           : "io.reactivex.rxjava3:rxjava:$versions.rxJavaReactiveStreams",
+    springBootConfigProcessor       : "org.springframework.boot:spring-boot-configuration-processor",
+    springBootStarterActuator       : "org.springframework.boot:spring-boot-starter-actuator",
+    springBootStarterAop            : "org.springframework.boot:spring-boot-starter-aop",
+    springBootStarterDataMongoDb    : "org.springframework.boot:spring-boot-starter-data-mongodb",
+    springBootStarterTest           : "org.springframework.boot:spring-boot-starter-test",
+    springBootStarterThymeleaf      : "org.springframework.boot:spring-boot-starter-thymeleaf",
+    springBootStarterWeb            : "org.springframework.boot:spring-boot-starter-web",
+    springRestDocsCore              : "org.springframework.restdocs:spring-restdocs-core:$versions.springRestDocs",
+    springRestDocsMockMvc           : "org.springframework.restdocs:spring-restdocs-mockmvc:$versions.springRestDocs",
+  ]
+}

@@ -1,0 +1,95 @@
+// Define plugin versions here, but only apply them when we need to.  Versions defined in settings.gradle
+plugins {
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management' apply false
+    id "com.palantir.git-version" apply false
+}
+
+ext {
+    set('springCloudVersion', "Hoxton.SR4")
+}
+
+// Map plugins to Build Commander project types
+def dockerProjectTypes = ['SpringBootMicroservice', 'SpringBootNpmMicroservice']
+def javaProjectTypes = ['Java', 'SpringBoot', 'SpringBootNpm', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
+def npmProjectTypes = ['Npm', 'SpringBootNpm', 'SpringBootNpmMicroservice']
+def springProjectTypes = ['SpringBoot', 'SpringBootNpm', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
+
+// Add solution library versions
+apply from: '../_commander/versions/hoxton.sr4.gradle'
+
+// Configure sub-projects
+subprojects { project ->
+
+    // Define repositories (required
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    // Add Git Plugins
+    apply from: "${project.rootDir}/scripts/git.gradle"
+    apply plugin: "com.palantir.git-version"
+    def versionDetails = versionDetails()
+    version = "${versionDetails.lastTag}-${versionDetails.commitDistance}-${versionDetails.gitHash}${versionDetails.isCleanTag ? '' : '-dirty'}"
+
+    // Verify project exists
+    if (!project.projectDir.exists() || project.projectDir.list().length == 0) {
+        return
+    }
+
+    def projectType = project.hasProperty('projectType') ? project.projectType.trim() : ""
+
+    // Optionally apply Java plugin
+    if (javaProjectTypes.contains(projectType)) {
+
+        // Verify required properties are set
+        if (!project.hasProperty('javaGroup') || javaGroup.allWhitespace) {
+            throw new GradleException("'${project.name}' is missing required property 'javaGroup'.")
+        }
+
+        apply plugin: 'java'
+
+        sourceCompatibility = '11'
+        group = javaGroup
+
+        configurations {
+            developmentOnly
+            runtimeClasspath {
+                extendsFrom developmentOnly
+            }
+            compileOnly {
+                extendsFrom annotationProcessor
+            }
+        }
+    }
+
+    // Optionally apply Spring Boot and related plugins
+    if (springProjectTypes.contains(projectType)) {
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'io.spring.dependency-management'
+
+        dependencyManagement {
+            imports {
+                if (projectType.equals('SpringBootMicroservice')) {
+                    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+                }
+            }
+        }
+    }
+
+    // Optionally apply Npm plugins
+    if (npmProjectTypes.contains(projectType)) {
+        apply from: "${project.rootDir}/scripts/spring-npm.gradle"
+    }
+
+    // Optionally apply Docker plugins
+    if (dockerProjectTypes.contains(projectType)) {
+        apply from: "${project.rootDir}/scripts/docker.gradle"
+    }
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}

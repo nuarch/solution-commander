@@ -1,0 +1,67 @@
+// Docker credential must be set via docker login outside of gradle
+buildscript {
+  ext {}
+
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath "com.palantir.gradle.docker:gradle-docker:0.25.0"
+  }
+}
+
+// Registry
+if (!project.hasProperty('dockerRegistry') || dockerRegistry.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'dockerRegistry'.")
+}
+def dockerDefaultRegistry = findProperty("dockerRegistry") ?: ""
+def dockerProjectRegistry = findProperty("${project.name}.dockerRegistry")
+def registry = (dockerProjectRegistry == null) ? dockerDefaultRegistry :dockerProjectRegistry
+
+// Group
+if (!project.hasProperty('dockerGroup') || dockerGroup.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'dockerGroup'.")
+}
+
+// Dockerfile
+if (!project.hasProperty('dockerFile') || dockerFile.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'dockerFile'.")
+}
+def dockerDefaultDockerfile = findProperty("dockerFile") ?: ""
+def dockerProjectDockerfile = findProperty("${project.name}.dockerFile")
+def dockerfile = (dockerProjectDockerfile == null) ? dockerDefaultDockerfile :dockerProjectDockerfile
+
+
+// Allow override from command line
+def tag = !project.hasProperty("tag") ? project.version : tag
+
+
+apply plugin: com.palantir.gradle.docker.PalantirDockerPlugin
+
+task createVersionFile {
+  dependsOn(build)
+  doLast {
+    def versionFile = new File(project.file('build'), 'version.txt')
+    versionFile.text = project.version
+  }
+}
+
+docker {
+  dependsOn(createVersionFile)
+
+  name = "${registry}/${dockerGroup}/${project.name}:" + tag
+  copySpec.from("build/version.txt").into("/")
+  copySpec.from("build/libs/${project.name}-${project.version}.jar").into("/")
+  copySpec.from("src/main/bash/entrypoint.sh").into("/")
+  copySpec.from("../_commander/dockerfiles/${dockerfile}").into("/")
+  copySpec.rename("${dockerFile}","Dockerfile")
+
+  //TODO add certs back when move to DSNY
+}
+

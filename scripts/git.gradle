@@ -1,0 +1,304 @@
+// Set branch from properties file
+def gitDefaultBranch = findProperty("gitDefaultBranch") ?: "master"
+def gitProjectBranch = findProperty("${project.name}.branch")
+def branch = (gitProjectBranch == null) ? gitDefaultBranch :gitProjectBranch
+
+// Allow override from command line
+branch = project.hasProperty("branch") ? project.branch : branch;
+
+// Verify required properties are set
+if (!project.hasProperty('gitUsername') || gitUsername.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'gitUsername'.")
+}
+if (!project.hasProperty('gitPassword') || gitPassword.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'gitPassword'.")
+}
+if (!project.hasProperty("${project.name}.repo") || project.getProperty("${project.name}.repo").allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property '${project.name}.repo'.")
+}
+
+def url = "https://" + getProperty("gitUsername") + ":" + getProperty("gitPassword") + "@" + getProperty("${project.name}.repo")
+
+task clone {
+  group 'Git'
+  description 'Clones project using git'
+  doLast {
+    StringBuilder error = new StringBuilder();
+
+    println "Using branch '${branch}'"
+
+    def dir = project.projectDir.toString()
+    def cmd = [
+      'git',
+      'clone',
+      '--branch',
+      branch,
+      url,
+      dir
+    ]
+    def process = new ProcessBuilder(cmd)
+      .start()
+    process.inputStream.eachLine {
+      println it
+    }
+    process.waitFor()
+    if (0 != process.exitValue()) {
+      error = new StringBuilder()
+      process.errorStream.eachLine {
+        error.append(it)
+      }
+     throw new GradleException(error.toString());
+    }
+  }
+}
+
+task checkout {
+  group 'Git'
+  description 'Checks out project using git'
+  doLast {
+    StringBuilder error = new StringBuilder();
+
+    println "Checking-out branch '${branch}'"
+    println "Checking-out to ${project.projectDir}"
+
+    def cmdFetch = [
+      'git',
+      'fetch',
+      '-v'
+    ]
+    def cmdCheckout = [
+      'git',
+      'checkout',
+      branch
+    ]
+    def cmdPull = [
+      'git',
+      'pull',
+      '--ff-only'
+    ]
+
+    // Fetch
+    println "Fetching..."
+    def process = new ProcessBuilder(cmdFetch)
+    .directory(new File(project.projectDir.toString()))
+    .start()
+    process.inputStream.eachLine {
+      println it
+    }
+    process.waitFor()
+    if (0 != process.exitValue()) {
+      error = new StringBuilder()
+      process.errorStream.eachLine {
+        error.append(it)
+      }
+     throw new GradleException(error.toString());
+    }
+
+    // Checkout
+    println "Checking out..."
+    process = new ProcessBuilder(cmdCheckout)
+    .directory(new File(project.projectDir.toString()))
+    .start()
+    process.inputStream.eachLine {
+      println it
+    }
+    process.waitFor()
+    if (0 != process.exitValue()) {
+      error = new StringBuilder()
+      process.errorStream.eachLine {
+        error.append(it)
+      }
+     throw new GradleException(error.toString());
+    }
+
+    // Pull
+    println "Pulling..."
+    process = new ProcessBuilder(cmdPull)
+    .directory(new File(project.projectDir.toString()))
+    .start()
+
+    error = new StringBuilder()
+    process.inputStream.eachLine {
+      error.append(it)
+    }
+    process.waitFor()
+    if (0 != process.exitValue()) {
+      error = new StringBuilder()
+      process.errorStream.eachLine {
+        error.append(it)
+      }
+     throw new GradleException(error.toString());
+    }
+  }
+}
+
+// task createBranch() {
+//   group 'Git'
+//   description 'Creates new branch off of current branch'
+//   doLast {
+//     println "Using branch '$gitBranch'"
+//     println "Cloning to ${project.projectDir}"
+
+//     // Allow owner to be overridden in gradle.properties
+//     def owner = findProperty("${project.name}.gitOwner") ?: gitOwner
+//     println "Repository owner: '${owner}'"
+
+//     def url = 'https://' + gitUsername + ':' + gitPassword + '@' + gitServer + '/' + owner + '/' + project.projectDir.name + '.git'
+//     def cmdFetch = [
+//       'git',
+//       'fetch',
+//       '-v'
+//     ]
+//     def cmdCheckout = [
+//       'git',
+//       'checkout',
+//       '-b',
+//       gitBranch
+//     ]
+//     def cmdPull = [
+//       'git',
+//       'pull',
+//       '--ff-only'
+//     ]
+
+//     // Fetch
+//     println "Fetching..."
+//     def process = new ProcessBuilder(cmdFetch)
+//     .redirectErrorStream(true)
+//     .directory(new File(project.projectDir.toString()))
+//     .start()
+//     process.inputStream.eachLine {
+//       println it
+//     }
+//     process.waitFor()
+//     if (0 != process.exitValue()) {
+//       throw new RuntimeException();
+//     }
+
+//     // Checkout
+//     println "Checking out..."
+//     process = new ProcessBuilder(cmdCheckout)
+//     .redirectErrorStream(true)
+//     .directory(new File(project.projectDir.toString()))
+//     .start()
+//     process.inputStream.eachLine {
+//       println it
+//     }
+//     process.waitFor()
+//     if (0 != process.exitValue()) {
+//       throw new RuntimeException();
+//     }
+//   }
+// }
+
+// task status() {
+//   group 'Git'
+//   description 'Prints current git status to standard out'
+//   doLast {
+//     def cmd = [
+//       'git',
+//       'status'
+//     ]
+//     def process = new ProcessBuilder(cmd)
+//       .redirectErrorStream(true)
+//       .directory(new File(project.projectDir.toString()))
+//       .start()
+//     process.inputStream.eachLine {
+//       println it
+//     }
+//     process.waitFor()
+//     if (0 == process.exitValue()) {
+//       println "Done"
+//     }
+//   }
+// }
+
+// task showRemoteBranches() {
+//   group 'Git'
+//   description 'Displays all remotes branches'
+//   doLast {
+//     def cmdPrune = [
+//       'git',
+//       'remote',
+//       'prune',
+//       'origin'
+//     ]
+//     def cmd = [
+//       'git',
+//       'branch',
+//       '-r'
+//     ]
+
+//     println "Project: ${project.name}"
+//     def processPrune = new ProcessBuilder(cmdPrune)
+//       .redirectErrorStream(true)
+//       .directory(new File(project.projectDir.toString()))
+//       .start()
+//     processPrune.inputStream.eachLine {
+//       println it
+//     }
+//     processPrune.waitFor()
+//     println "Remote branches: "
+//     def process = new ProcessBuilder(cmd)
+//       .redirectErrorStream(true)
+//       .directory(new File(project.projectDir.toString()))
+//       .start()
+//     process.inputStream.eachLine {
+//       println it
+//     }
+//     process.waitFor()
+//     if (0 == process.exitValue()) {
+//       println "Done"
+//     }
+//   }
+// }
+
+// task showRemoteBranchesMergedToMaster {
+//   group 'Git'
+//   description 'Displays all remotes branches that have been merged to master'
+//   doLast {
+//     File gitScript = new File(developmentFiles + "/gradle-scripts/git-scripts/remoteBranchesMergedToMaster.sh")
+//     def cmd = [
+//       'sh',
+//       gitScript.toString()
+//     ]
+//     println "Project: ${project.name}"
+//     println "Remote branches merged to master: "
+//     def process = new ProcessBuilder(cmd)
+//       .redirectErrorStream(true)
+//       .directory(new File(project.projectDir.toString()))
+//       .start()
+//     process.inputStream.eachLine {
+//       println it
+//     }
+//     process.waitFor()
+//     if (0 == process.exitValue()) {
+//       println "Done"
+//     }
+//   }
+// }
+
+// task showRemoteBranchesNotMergedToMaster {
+//   group 'Git'
+//   description 'Displays all remotes branches that have not been merged to master'
+//   doLast {
+//     File gitScript = new File(developmentFiles + "/gradle-scripts/git-scripts/remoteBranchesNotMergedToMaster.sh")
+//     def cmd = [
+//       'sh',
+//       gitScript.toString()
+//     ]
+//     println "Project: ${project.name}"
+//     println "Remote branches not merged to master: "
+//     def process = new ProcessBuilder(cmd)
+//       .redirectErrorStream(true)
+//       .directory(new File(project.projectDir.toString()))
+//       .start()
+//     process.inputStream.eachLine {
+//       println it
+//     }
+//     process.waitFor()
+//     if (0 == process.exitValue()) {
+//       println "Done"
+//     }
+//   }
+// }

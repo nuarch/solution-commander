@@ -1,0 +1,29 @@
+# Git settings
+gitUsername =
+gitPassword =
+gitDefault.branch=master
+
+# Java
+javaGroup=gov.nyc.dsny.mims
+
+# Docker
+dockerGroup=dsny
+dockerRegistry=docker.nuarch.io
+dockerFile=java11-base.dockerfile
+
+# NPM
+npmAuth=
+npmEmail=
+npmUrl=https://opscenter.nuarch.io/nexus/repository/npm
+npmPublishUrl=https://opscenter.nuarch.io/nexus/repository/npm-hosted
+
+
+# Projects
+mims-reference-data-service.repo=bitbucket.org/nuarch/mims-reference-data-service.git
+mims-reference-data-ui-service.repo=bitbucket.org/nuarch/mims-reference-data-ui-service.git
+
+
+# Project overrides
+#[PROJECT_NAME].branch=
+#[PROJECT_NAME].dockerFile=
+#[PROJECT_NAME].dockerRegistry=

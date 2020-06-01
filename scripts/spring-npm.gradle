@@ -1,0 +1,238 @@
+// Java website folders
+def publicDir = 'src/main/resources/public'
+def templateDir = 'src/main/resources/templates'
+
+// Node folders
+def nodeDir = 'src/client'
+def nodeDistDir = "$nodeDir/dist"
+
+task cleanNode(type: Delete) {
+	group 'Spring NPM'
+	description 'Deletes node distribution directory'
+	delete nodeDistDir
+}
+
+task cleanStaticResources(type: Delete) {
+	group 'Spring NPM'
+	description 'Delete public and template resource folders'
+	delete publicDir
+	delete templateDir
+}
+
+import org.gradle.internal.os.OperatingSystem;
+
+task configNpm {
+	group 'Spring NPM'
+	description "Configures npm authentications"
+	dependsOn cleanStaticResources
+
+	doLast {
+		if (project.hasProperty("npmAuth") && project.hasProperty("npmEmail")
+			&& project.hasProperty("npmUrl")) {
+			if (OperatingSystem.current().isWindows()) {
+				exec {
+					workingDir nodeDir
+					commandLine 'cmd', '/c', 'npm', 'config', 'set', '_auth', "$npmAuth"
+				}
+				exec {
+					workingDir nodeDir
+					commandLine 'cmd', '/c', 'npm', 'config', 'set', 'always-auth', 'true'
+				}
+				exec {
+					workingDir nodeDir
+					commandLine 'cmd', '/c', 'npm', 'config', 'set', 'email', "$npmEmail"
+				}
+				exec {
+					workingDir nodeDir
+					commandLine 'cmd', '/c', 'npm', 'config', 'set', 'registry', "$npmUrl"
+				}
+			} else {
+				exec {
+					workingDir nodeDir
+					commandLine 'npm', 'config', 'set', '_auth', "$npmAuth"
+				}
+				exec {
+					workingDir nodeDir
+					commandLine 'npm', 'config', 'set', 'always-auth', 'true'
+				}
+				exec {
+					workingDir nodeDir
+					commandLine "npm", "config", "set", "email", "$npmEmail"
+				}
+				exec {
+					workingDir nodeDir
+					commandLine 'npm', 'config', 'set', 'registry', "$npmUrl"
+				}
+			}
+		} else {
+			println("Skipped...npm properties not supplied")
+		}
+	}
+}
+
+task installNodeModules(type: Exec) {
+	group 'Spring NPM'
+	description 'Install project node modulesy'
+	dependsOn configNpm
+
+	workingDir nodeDir
+
+	def modulesDir = new File(workingDir.absolutePath + '/node_modules');
+	if (OperatingSystem.current().isWindows()) {
+		commandLine "cmd", "/c", "npm", "install"
+	} else {
+		commandLine "npm", "install", "--ingore-engines"
+	}
+}
+
+task nodeLint(type: Exec) {
+	group 'Spring NPM'
+	description 'Lint code'
+	dependsOn installNodeModules
+
+	workingDir nodeDir
+
+	if (OperatingSystem.current().isWindows()) {
+		commandLine "cmd", "/c", "npm", "run", "lint"
+	} else {
+		commandLine "npm", "run", "lint"
+	}
+}
+
+task nodeTest(type: Exec) {
+	group 'Spring NPM'
+	description 'Execute npm unit tests on npm project'
+	dependsOn nodeLint
+
+	workingDir nodeDir
+
+	if (OperatingSystem.current().isWindows()) {
+		commandLine "cmd", "/c", "npm", "run", "test:ci"
+	} else {
+		commandLine "npm", "run", "test:ci"
+	}
+}
+
+task nodeTestLib(type: Exec) {
+	group 'Spring NPM'
+	description 'Execute npm unit tests on npm library project'
+	dependsOn nodeLint
+
+	workingDir nodeDir
+
+	if (OperatingSystem.current().isWindows()) {
+		commandLine "cmd", "/c", "npm", "run", "test:ci:lib"
+	} else {
+		commandLine "npm", "run", "test:ci:lib"
+	}
+}
+
+task nodeBuild(type: Exec) {
+	group 'Spring NPM'
+	description 'Build npm project'
+	dependsOn nodeTest
+
+	workingDir nodeDir
+
+	if (OperatingSystem.current().isWindows()) {
+		commandLine "cmd", "/c", "npm", "run", "build:ci"
+	} else {
+		commandLine "npm", "run", "build:ci"
+	}
+}
+
+task nodeBuildLib(type: Exec) {
+	group 'Spring NPM'
+	description 'Build npm library project'
+
+	dependsOn nodeTestLib
+
+	workingDir nodeDir
+
+	if (OperatingSystem.current().isWindows()) {
+		commandLine "cmd", "/c", "npm", "run", "build:lib"
+	} else {
+		commandLine "npm", "run", "build:lib"
+	}
+}
+
+// Only supports 1 library with name [PROJECT_NAME]-library
+task nodePublishLib(type: Exec) {
+	group 'Spring NPM'
+	description 'Publish npm library project'
+	dependsOn nodeBuildLib
+
+	workingDir nodeDir
+
+	if (OperatingSystem.current().isWindows()) {
+		if (project.hasProperty("npmAuth")) {
+			commandLine "cmd", "/c", "npm", "publish", "dist/${project.name}-library", '--registry', "$npmPublishUrl"
+		}
+	} else {
+		if (project.hasProperty("npmAuth")) {
+			commandLine 'npm', 'publish', "dist/${project.name}-library", '--registry', "$npmPublishUrl"
+		}
+	}
+}
+
+task copyStaticResources() {
+	group 'Spring NPM'
+	description 'Copy NPM project into Spring project'
+	dependsOn nodeBuild
+
+	doLast {
+		copy {
+			from nodeDistDir
+			into project.file(publicDir)
+			exclude 'index.html'
+		}
+
+		copy {
+			from "$nodeDistDir/index.html"
+			into project.file(templateDir)
+		}
+
+		// Convert static references to dynamic
+		File indexFile = file("$templateDir/index.html")
+		String content = indexFile.getText("UTF-8")
+
+		content = content.replaceAll(/<base href="(.*?)".*?\/>/) { all, url ->
+			'<base th:href="${@environment.getProperty(\'server.context-path\')}"/>'
+		}
+
+		content = content.replaceAll(/<html(.*?)>/) { all, url ->
+			'<html xmlns:th="http://www.thymeleaf.org">'
+		}
+
+		content = content.replaceAll(/<script type="text\/javascript" src="(.*?)"/) { all, url ->
+
+			def spring1 = ' th:src=\"@{/'
+			def spring2 = '}\"'
+			all + spring1 + url + spring2
+
+		}
+
+		content = content.replaceAll(/<link href="(.*?)" rel="stylesheet"/) { all, url ->
+
+			def spring1 = ' th:src=\"@{/'
+			def spring2 = '}\"'
+			all + spring1 + url + spring2
+		}
+
+		content = content.replaceAll(/<link rel="stylesheet" href="(.*?)"/) { all, url ->
+
+			def spring1 = ' th:src=\"@{/'
+			def spring2 = '}\"'
+			all + spring1 + url + spring2
+		}
+
+		content = content.replaceAll('<script th:inline="javascript" async defer>',
+		'<script th:inline="javascript" async="async" defer="defer">')
+
+		indexFile.text = content;
+	}
+}
+
+build.dependsOn 'copyStaticResources'
+
+clean.dependsOn 'cleanNode', 'cleanStaticResources'
