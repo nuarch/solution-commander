@@ -1,6 +1,6 @@
 // Define plugin versions here, but only apply them when we need to.  Versions defined in settings.gradle
 plugins {
-    id 'org.springframework.boot' version '2.3.0.RELEASE' apply false
+    id 'org.springframework.boot' version '2.2.1.RELEASE' apply false
     id 'io.spring.dependency-management' version '1.0.9.RELEASE' apply false
     id "com.palantir.git-version" version '0.12.3' apply false
 }

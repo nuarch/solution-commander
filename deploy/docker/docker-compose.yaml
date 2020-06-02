@@ -11,21 +11,14 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
     restart: always
-    #entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
 
   mims-gateway:
-    image: docker.nuarch.io/dsny/mims-gateway:v0.1.0-0-adfe5e3822-dirty
+    image: docker.nuarch.io/dsny/mims-gateway:v0.1.0-2-782ed0c9df-dirty
     ports:
       - 8080:8080
     links:
       - mims-reference-data
       - mims-reference-data-ui
-      - mongo-express
-#    environment:
-#      MONGO_URI: mongodb
-#      MONGO_OPTIONS: "?connectTimeoutMS=300000&minPoolSize=5"
-#      MONGO_USERNAME: admin
-#      MONGO_PASSWORD: admin
 
   mongo-express:
     image: mongo-express
@@ -43,7 +36,7 @@ services:
     restart: always
 
   mims-reference-data:
-    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.2.0-1-25b0a17b0b-dirty
+    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.2.0-2-8d04f92012-dirty
     ports:
       - 8082:8080
     links:
@@ -51,13 +44,13 @@ services:
     depends_on:
       - mongodb
     environment:
-      MONGO_URI: mongodb
-      MONGO_OPTIONS: "?connectTimeoutMS=300000&minPoolSize=5"
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
       MONGO_USERNAME: admin
       MONGO_PASSWORD: admin
 
   mims-reference-data-ui:
-    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.2.0-2-6121798e0b-dirty
+    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.2.0-3-72c20421d1-dirty
     ports:
       - 8083:8080
     depends_on:
