@@ -197,7 +197,7 @@ task copyStaticResources() {
 		String content = indexFile.getText("UTF-8")
 
 		content = content.replaceAll(/<base href="(.*?)".*?\/>/) { all, url ->
-			'<base th:href="${@environment.getProperty(\'server.context-path\')}"/>'
+			'<base th:href="${@environment.getProperty(\'server.servlet.context-path\')}"/>'
 		}
 
 		content = content.replaceAll(/<html(.*?)>/) { all, url ->

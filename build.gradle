@@ -1,12 +1,8 @@
 // Define plugin versions here, but only apply them when we need to.  Versions defined in settings.gradle
 plugins {
-    id 'org.springframework.boot' apply false
-    id 'io.spring.dependency-management' apply false
-    id "com.palantir.git-version" apply false
-}
-
-ext {
-    set('springCloudVersion', "Hoxton.SR4")
+    id 'org.springframework.boot' version '2.3.0.RELEASE' apply false
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE' apply false
+    id "com.palantir.git-version" version '0.12.3' apply false
 }
 
 // Map plugins to Build Commander project types
@@ -14,9 +10,10 @@ def dockerProjectTypes = ['SpringBootMicroservice', 'SpringBootNpmMicroservice']
 def javaProjectTypes = ['Java', 'SpringBoot', 'SpringBootNpm', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
 def npmProjectTypes = ['Npm', 'SpringBootNpm', 'SpringBootNpmMicroservice']
 def springProjectTypes = ['SpringBoot', 'SpringBootNpm', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
+def springCloudProjectTypes = ['SpringBootMicroservice', 'SpringBootNpmMicroservice']
 
 // Add solution library versions
-apply from: '../_commander/versions/hoxton.sr4.gradle'
+apply from: '../_commander/versions/hoxton.sr5.gradle'
 
 // Configure sub-projects
 subprojects { project ->
@@ -54,16 +51,6 @@ subprojects { project ->
 
         sourceCompatibility = '11'
         group = javaGroup
-
-        configurations {
-            developmentOnly
-            runtimeClasspath {
-                extendsFrom developmentOnly
-            }
-            compileOnly {
-                extendsFrom annotationProcessor
-            }
-        }
     }
 
     // Optionally apply Spring Boot and related plugins
@@ -73,8 +60,8 @@ subprojects { project ->
 
         dependencyManagement {
             imports {
-                if (projectType.equals('SpringBootMicroservice')) {
-                    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+                if (springCloudProjectTypes.contains(projectType)) {
+                    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
                 }
             }
         }

@@ -1,3 +1,5 @@
+// Note: Spring Boot configured in build.gradle
+
 ext {
   versions = [
     commonsLang3                    : '3.9',
@@ -7,8 +9,7 @@ ext {
     mockito                         : '3.1.0',
     nosqlunitMongoDb                : '1.0.0',
     rxJavaReactiveStreams           : '3.0.4', // legacy
-    springBoot                      : ' 2.2.5.RELEASE',
-    springCloud                     : 'Hoxton.SR4', 
+    springCloud                     : 'Hoxton.SR5',
     springRestDocs                  : '2.0.4.RELEASE'
   ]
   
@@ -26,7 +27,9 @@ ext {
     springBootStarterDataMongoDb    : "org.springframework.boot:spring-boot-starter-data-mongodb",
     springBootStarterTest           : "org.springframework.boot:spring-boot-starter-test",
     springBootStarterThymeleaf      : "org.springframework.boot:spring-boot-starter-thymeleaf",
+    springBootStarterValidation      : "org.springframework.boot:spring-boot-starter-validation",
     springBootStarterWeb            : "org.springframework.boot:spring-boot-starter-web",
+    springBootStarterWeblux         : "org.springframework.boot:spring-boot-starter-webflux",
     springCloudStarterGateway       : "org.springframework.cloud:spring-cloud-starter-gateway",
     springRestDocsCore              : "org.springframework.restdocs:spring-restdocs-core:$versions.springRestDocs",
     springRestDocsMockMvc           : "org.springframework.restdocs:spring-restdocs-mockmvc:$versions.springRestDocs",
