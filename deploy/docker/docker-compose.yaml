@@ -27,3 +27,24 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin
     restart: always  
+
+  mims-reference-data:
+    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.2.0-1-25b0a17b0b-dirty
+    ports:
+      - 8082:8080
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: mongodb
+      MONGO_OPTIONS: "?connectTimeoutMS=300000&minPoolSize=5"
+      MONGO_USERNAME: admin
+      MONGO_PASSWORD: admin
+
+  mims-reference-data-ui:
+    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.2.0-2-6121798e0b-dirty
+    ports:
+      - 8083:8080
+    depends_on:
+      - mims-reference-data   

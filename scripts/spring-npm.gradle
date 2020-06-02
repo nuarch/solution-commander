@@ -157,7 +157,7 @@ task npmBuildLib(type: Exec) {
 }
 
 // Only supports 1 library with name [PROJECT_NAME]-library
-task nodePublishLib(type: Exec) {
+task npmPublishLib(type: Exec) {
 	group 'Spring NPM'
 	description 'Publish npm library project'
 	dependsOn npmBuildLib
