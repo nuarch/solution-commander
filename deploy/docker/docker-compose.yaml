@@ -36,7 +36,7 @@ services:
     restart: always
 
   mims-reference-data:
-    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.2.0-2-8d04f92012-dirty
+    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.2.0-3-10a9ccecc8-dirty
     ports:
       - 8082:8080
     links:
@@ -50,7 +50,7 @@ services:
       MONGO_PASSWORD: admin
 
   mims-reference-data-ui:
-    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.2.0-3-10a9ccecc8-dirty
+    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.2.0-3-72c20421d1-dirty
     ports:
       - 8083:8080
     depends_on:
