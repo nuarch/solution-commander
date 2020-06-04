@@ -8,7 +8,7 @@ ext {
     lombok                          : '1.18.12',       
     mockito                         : '3.1.0',
     nosqlunitMongoDb                : '1.0.0',
-    rxJavaReactiveStreams           : '3.0.4', // legacy
+    rxJava                          : '2.2.19',
     springCloud                     : 'Hoxton.SR5',
     springRestDocs                  : '2.0.4.RELEASE'
   ]
@@ -20,7 +20,7 @@ ext {
     lombok                          : "org.projectlombok:lombok:$versions.lombok",
     mockito                         : "org.mockito:mockito-core:$versions.mockito",
     nosqlunitMongoDb                : "com.lordofthejars:nosqlunit-mongodb:$versions.nosqlunitMongoDb",
-    rxJavaReactiveStreams           : "io.reactivex.rxjava3:rxjava:$versions.rxJavaReactiveStreams",
+    rxJava                          : "io.reactivex.rxjava2:rxjava:$versions.rxJava",
     springBootConfigProcessor       : "org.springframework.boot:spring-boot-configuration-processor",
     springBootStarterActuator       : "org.springframework.boot:spring-boot-starter-actuator",
     springBootStarterAop            : "org.springframework.boot:spring-boot-starter-aop",
