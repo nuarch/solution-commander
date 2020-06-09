@@ -1,6 +1,7 @@
 rootProject.name = "mims"
 
 include 'mims-gateway', \
+        'mims-mongo-data-load', \
         'mims-reference-data-service', \
         'mims-reference-data-ui-service'
 

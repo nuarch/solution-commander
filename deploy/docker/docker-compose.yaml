@@ -13,7 +13,7 @@ services:
     restart: always
 
   mims-gateway:
-    image: docker.nuarch.io/dsny/mims-gateway:v0.1.0-3-95cc001e7f-dirty
+    image: docker.nuarch.io/dsny/mims-gateway:v0.2.0-0-95cc001e7f
     ports:
       - 8080:8080
     links:
@@ -35,8 +35,21 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin
     restart: always
 
+  mims-mongo-data-load:
+    image: docker.nuarch.io/dsny/mims-mongo-data-load:v0.2.0-0-263cedc39b
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_USERNAME: admin
+      MONGO_PASSWORD: admin
+    entrypoint: bash -c "/wait-for-it.sh --timeout=0 mongodb:27017 && /entrypoint.sh"
+
+
   mims-reference-data:
-    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.2.0-3-10a9ccecc8-dirty
+    image: docker.nuarch.io/dsny/mims-reference-data-service:v0.3.0-0-8efb840634
     ports:
       - 8082:8080
     links:
@@ -50,8 +63,8 @@ services:
       MONGO_PASSWORD: admin
 
   mims-reference-data-ui:
-    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.2.0-3-72c20421d1-dirty
+    image: docker.nuarch.io/dsny/mims-reference-data-ui-service:v0.3.0-0-43195d6e24
     ports:
       - 8083:8080
     depends_on:
-      - mims-reference-data   
+      - mims-reference-data

@@ -6,7 +6,7 @@ plugins {
 }
 
 // Map plugins to Build Commander project types
-def dockerProjectTypes = ['SpringBootMicroservice', 'SpringBootNpmMicroservice']
+def dockerProjectTypes = ['Docker', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
 def javaProjectTypes = ['Java', 'SpringBoot', 'SpringBootNpm', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
 def npmProjectTypes = ['Npm', 'SpringBootNpm', 'SpringBootNpmMicroservice']
 def springProjectTypes = ['SpringBoot', 'SpringBootNpm', 'SpringBootMicroservice', 'SpringBootNpmMicroservice']
@@ -74,6 +74,10 @@ subprojects { project ->
 
     // Optionally apply Docker plugins
     if (dockerProjectTypes.contains(projectType)) {
-        apply from: "${project.rootDir}/scripts/docker.gradle"
+        if (projectType.equals("Docker")) {
+            apply from: "${project.rootDir}/scripts/docker-common.gradle"
+        } else {
+            apply from: "${project.rootDir}/scripts/docker.gradle"
+        }
     }
 }

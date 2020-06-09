@@ -1,0 +1,81 @@
+// Docker credential must be set via docker login outside of gradle
+buildscript {
+  ext {}
+
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath "com.palantir.gradle.docker:gradle-docker:0.25.0"
+  }
+}
+
+// Registry
+if (!project.hasProperty('dockerRegistry') || dockerRegistry.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'dockerRegistry'.")
+}
+def dockerDefaultRegistry = findProperty("dockerRegistry") ?: ""
+def dockerProjectRegistry = findProperty("${project.name}.dockerRegistry")
+def registry = (dockerProjectRegistry == null) ? dockerDefaultRegistry :dockerProjectRegistry
+
+// Group
+if (!project.hasProperty('dockerGroup') || dockerGroup.allWhitespace) {
+  throw new GradleException("'${project.name}' is missing required property 'dockerGroup'.")
+}
+
+// Allow override from command line
+def tag = !project.hasProperty("tag") ? project.version : tag
+
+apply plugin: com.palantir.gradle.docker.PalantirDockerPlugin
+
+task createVersionFile {
+  doLast {
+    project.file("build").mkdir()
+    def versionFile = new File(project.file("build"), 'version.txt')
+    versionFile.text = project.version
+  }
+}
+
+docker {
+  dependsOn(createVersionFile)
+
+  name = "${registry}/${dockerGroup}/${project.name}:" + tag
+  copySpec.with {
+    from('.') {
+      include 'data/**'
+      into '.'
+    }
+    from('.') {
+      include 'libs/**'
+      into '.'
+    }
+    from('.') {
+      include '*.sh'
+      into '.'
+    }
+    from('build') {
+      include 'version.txt'
+      into '.'
+    }
+  }
+}
+
+dockerClean {
+  doLast {
+    //project.file("build").deleteDir()
+  }
+}
+
+task clean() {
+  group 'build'
+  description 'Deletes the build directory'
+  doLast {
+    project.file("build").deleteDir()
+  }
+}
